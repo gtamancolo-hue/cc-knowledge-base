@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Zap, BookOpen } from "lucide-react";
+import { GitBranch, BookOpen } from "lucide-react";
 
 export type ArticleViewMode = "cheatsheet" | "full";
 
@@ -22,12 +22,12 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
             : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
         }`}
       >
-        <Zap
+        <GitBranch
           className={`w-4 h-4 ${
-            mode === "cheatsheet" ? "text-amber-500 dark:text-amber-300 fill-amber-500" : "text-slate-400"
+            mode === "cheatsheet" ? "text-indigo-500 dark:text-indigo-300" : "text-slate-400"
           }`}
         />
-        <span>⚡ Шпаргалка на звонке (3–5 сек)</span>
+        <span>🗺 Шагалка (Дерево диалога)</span>
       </button>
 
       <button
