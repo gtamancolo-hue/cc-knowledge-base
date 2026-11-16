@@ -312,6 +312,7 @@ export function KnowledgeProvider({ children }: { children: React.ReactNode }) {
         short_steps_json: articleData.short_steps_json || [],
         branching_scenarios_json: articleData.branching_scenarios_json || [],
         quick_scripts_json: articleData.quick_scripts_json || [],
+        decision_tree_json: articleData.decision_tree_json || [],
         full_content_markdown: articleData.full_content_markdown || "",
         tags_array: articleData.tags_array || [],
         synonyms_array: articleData.synonyms_array || [],
