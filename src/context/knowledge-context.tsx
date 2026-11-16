@@ -152,7 +152,15 @@ export function KnowledgeProvider({ children }: { children: React.ReactNode }) {
           .order("views_count", { ascending: false })
           .then(({ data }) => {
             if (data && data.length > 0) {
-              setArticles(data);
+              // Merge with local INITIAL_ARTICLES to ensure decision_tree_json is always present
+              const merged = data.map((art) => {
+                const initial = INITIAL_ARTICLES.find((a) => a.id === art.id);
+                return {
+                  ...art,
+                  decision_tree_json: art.decision_tree_json || initial?.decision_tree_json || [],
+                };
+              });
+              setArticles(merged);
             }
           });
 
