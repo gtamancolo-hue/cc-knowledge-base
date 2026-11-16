@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { showToast } from "@/components/ui/toast";
+import { VisualTreeEditor } from "@/components/cms/VisualTreeEditor";
 
 interface ArticleEditorModalProps {
   article?: Article | null;
@@ -47,8 +48,7 @@ export function ArticleEditorModal({
   const [steps, setSteps] = useState<StepItem[]>([]);
   const [branching, setBranching] = useState<BranchingScenario[]>([]);
   const [scripts, setScripts] = useState<QuickScript[]>([]);
-  const [decisionTreeJson, setDecisionTreeJson] = useState<string>("[]");
-  const [decisionTreeError, setDecisionTreeError] = useState<string | null>(null);
+  const [decisionTreeNodes, setDecisionTreeNodes] = useState<DecisionNode[]>([]);
   const [markdown, setMarkdown] = useState("");
   const [lastDraftTime, setLastDraftTime] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -64,7 +64,7 @@ export function ArticleEditorModal({
         setSteps(article.short_steps_json || []);
         setBranching(article.branching_scenarios_json || []);
         setScripts(article.quick_scripts_json || []);
-        setDecisionTreeJson(JSON.stringify(article.decision_tree_json || [], null, 2));
+        setDecisionTreeNodes(article.decision_tree_json || []);
         setMarkdown(article.full_content_markdown || "");
       } else {
         // New article template
@@ -156,15 +156,6 @@ export function ArticleEditorModal({
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
 
-    let parsedDecisionTree: DecisionNode[] = [];
-    try {
-      parsedDecisionTree = JSON.parse(decisionTreeJson || "[]");
-    } catch {
-      showToast("Ошибка в JSON дерева решений", "error");
-      setIsSaving(false);
-      return;
-    }
-
     const payload: Partial<Article> & { title: string; category_id: string } = {
       id: article?.id,
       title: title.trim(),
@@ -172,7 +163,7 @@ export function ArticleEditorModal({
       short_steps_json: steps,
       branching_scenarios_json: branching,
       quick_scripts_json: scripts,
-      decision_tree_json: parsedDecisionTree,
+      decision_tree_json: decisionTreeNodes,
       full_content_markdown: markdown,
       tags_array: parsedTags,
       synonyms_array: parsedSynonyms,
@@ -356,43 +347,12 @@ export function ArticleEditorModal({
             </div>
           )}
 
-          {/* TAB: DECISION TREE */}
+          {/* TAB: VISUAL DECISION TREE */}
           {activeTab === "tree" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                    Интерактивное дерево решений (Naumen-стиль)
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    Каждый узел содержит вопрос/действие оператора, реплику скрипта и варианты ответов клиента со ссылками на следующий шаг (id).
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <textarea
-                  rows={16}
-                  value={decisionTreeJson}
-                  onChange={(e) => {
-                    setDecisionTreeJson(e.target.value);
-                    try {
-                      JSON.parse(e.target.value);
-                      setDecisionTreeError(null);
-                    } catch (err: unknown) {
-                      setDecisionTreeError(err instanceof Error ? err.message : "Невалидный JSON");
-                    }
-                  }}
-                  className={`w-full font-mono text-xs p-3 rounded-xl border bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 ${
-                    decisionTreeError ? "border-red-500" : "border-slate-200 dark:border-slate-800"
-                  }`}
-                  placeholder="[ { id: 'start', type: 'start', text: '...', options: [...] } ]"
-                />
-                {decisionTreeError && (
-                  <p className="text-xs text-red-500 font-medium">⚠️ Ошибка валидации JSON: {decisionTreeError}</p>
-                )}
-              </div>
-            </div>
+            <VisualTreeEditor
+              nodes={decisionTreeNodes}
+              onChange={setDecisionTreeNodes}
+            />
           )}
 
           {/* TAB 2: STEPPER ALGORITHM */}
