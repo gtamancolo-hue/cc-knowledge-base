@@ -1,5 +1,5 @@
-import Fuse from "fuse.js";
-import { Article, Category, SynonymDictionary } from "@/types/database";
+import Fuse, { IFuseOptions, FuseResultMatch } from "fuse.js";
+import { Article, SynonymDictionary } from "@/types/database";
 import { DEFAULT_SYNONYMS } from "@/lib/data/mock-data";
 
 export interface SearchFilterOptions {
@@ -11,7 +11,7 @@ export interface SearchFilterOptions {
 export interface SearchResultItem {
   article: Article;
   score?: number;
-  matches?: readonly Fuse.FuseResultMatch[];
+  matches?: readonly FuseResultMatch[];
   matchedSynonym?: {
     searchedTerm: string;
     canonicalKey: string;
@@ -67,7 +67,7 @@ export function resolveSynonyms(
  * Configures Fuse.js instance for searching articles
  */
 export function createFuseIndex(articles: Article[]) {
-  const options: Fuse.IFuseOptions<Article> = {
+  const options: IFuseOptions<Article> = {
     includeScore: true,
     includeMatches: true,
     threshold: 0.35, // Balanced fuzzy tolerance for typos in Russian
