@@ -422,7 +422,7 @@ export function ArticleEditorModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-slate-500">
-                  Блок развилок «Если клиент говорит А -> делай Б» для быстрого ориентирования.
+                  {'Блок развилок «Если клиент говорит А → делай Б» для быстрого ориентирования.'}
                 </p>
                 <Button size="sm" variant="outline" onClick={addBranching} className="text-xs">
                   <Plus className="w-3.5 h-3.5 mr-1" />
