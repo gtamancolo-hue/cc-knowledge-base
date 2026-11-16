@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Article, Category, StepItem, BranchingScenario, QuickScript } from "@/types/database";
+import { Article, Category, StepItem, BranchingScenario, QuickScript, DecisionNode } from "@/types/database";
 import { useKnowledge } from "@/context/knowledge-context";
 import {
   X,
@@ -37,7 +37,7 @@ export function ArticleEditorModal({
 }: ArticleEditorModalProps) {
   const { categories, saveArticle } = useKnowledge();
 
-  const [activeTab, setActiveTab] = useState<"general" | "steps" | "branching" | "scripts" | "regulation">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "tree" | "steps" | "branching" | "scripts" | "regulation">("general");
 
   // Form states
   const [title, setTitle] = useState("");
@@ -47,6 +47,8 @@ export function ArticleEditorModal({
   const [steps, setSteps] = useState<StepItem[]>([]);
   const [branching, setBranching] = useState<BranchingScenario[]>([]);
   const [scripts, setScripts] = useState<QuickScript[]>([]);
+  const [decisionTreeJson, setDecisionTreeJson] = useState<string>("[]");
+  const [decisionTreeError, setDecisionTreeError] = useState<string | null>(null);
   const [markdown, setMarkdown] = useState("");
   const [lastDraftTime, setLastDraftTime] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -62,6 +64,7 @@ export function ArticleEditorModal({
         setSteps(article.short_steps_json || []);
         setBranching(article.branching_scenarios_json || []);
         setScripts(article.quick_scripts_json || []);
+        setDecisionTreeJson(JSON.stringify(article.decision_tree_json || [], null, 2));
         setMarkdown(article.full_content_markdown || "");
       } else {
         // New article template
@@ -153,6 +156,15 @@ export function ArticleEditorModal({
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
 
+    let parsedDecisionTree: DecisionNode[] = [];
+    try {
+      parsedDecisionTree = JSON.parse(decisionTreeJson || "[]");
+    } catch {
+      showToast("Ошибка в JSON дерева решений", "error");
+      setIsSaving(false);
+      return;
+    }
+
     const payload: Partial<Article> & { title: string; category_id: string } = {
       id: article?.id,
       title: title.trim(),
@@ -160,6 +172,7 @@ export function ArticleEditorModal({
       short_steps_json: steps,
       branching_scenarios_json: branching,
       quick_scripts_json: scripts,
+      decision_tree_json: parsedDecisionTree,
       full_content_markdown: markdown,
       tags_array: parsedTags,
       synonyms_array: parsedSynonyms,
@@ -223,6 +236,17 @@ export function ArticleEditorModal({
             }`}
           >
             Основное & Поиск
+          </button>
+          <button
+            onClick={() => setActiveTab("tree")}
+            className={`py-3 px-3 border-b-2 transition-colors whitespace-nowrap flex items-center space-x-1.5 ${
+              activeTab === "tree"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
+          >
+            <GitBranch className="w-3.5 h-3.5 text-emerald-500" />
+            <span>🗺 Шагалка (Дерево диалога)</span>
           </button>
           <button
             onClick={() => setActiveTab("steps")}
@@ -328,6 +352,45 @@ export function ArticleEditorModal({
                 <p className="text-[11px] text-slate-400 mt-1">
                   Если оператор введет любое из этих слов в поиск, статья мгновенно появится в топе выдачи.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: DECISION TREE */}
+          {activeTab === "tree" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                    Интерактивное дерево решений (Naumen-стиль)
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Каждый узел содержит вопрос/действие оператора, реплику скрипта и варианты ответов клиента со ссылками на следующий шаг (id).
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <textarea
+                  rows={16}
+                  value={decisionTreeJson}
+                  onChange={(e) => {
+                    setDecisionTreeJson(e.target.value);
+                    try {
+                      JSON.parse(e.target.value);
+                      setDecisionTreeError(null);
+                    } catch (err: unknown) {
+                      setDecisionTreeError(err instanceof Error ? err.message : "Невалидный JSON");
+                    }
+                  }}
+                  className={`w-full font-mono text-xs p-3 rounded-xl border bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    decisionTreeError ? "border-red-500" : "border-slate-200 dark:border-slate-800"
+                  }`}
+                  placeholder="[ { id: 'start', type: 'start', text: '...', options: [...] } ]"
+                />
+                {decisionTreeError && (
+                  <p className="text-xs text-red-500 font-medium">⚠️ Ошибка валидации JSON: {decisionTreeError}</p>
+                )}
               </div>
             </div>
           )}
