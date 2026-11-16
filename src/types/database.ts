@@ -62,7 +62,7 @@ export interface Article {
   branching_scenarios_json: BranchingScenario[];
   quick_scripts_json: QuickScript[];
   /** Interactive decision tree nodes — powers the new Шагалка view */
-  decision_tree_json: DecisionNode[];
+  decision_tree_json?: DecisionNode[];
   full_content_markdown: string;
   tags_array: string[];
   synonyms_array: string[];
