@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { ArticleHeader } from "@/components/article/ArticleHeader";
 import { ModeToggle, ArticleViewMode } from "@/components/article/ModeToggle";
 import { CheatSheetView } from "@/components/article/CheatSheetView";
+import { DecisionTreeView } from "@/components/article/DecisionTreeView";
 import { FullRegulationView } from "@/components/article/FullRegulationView";
 import { ArticleEditorModal } from "@/components/cms/ArticleEditorModal";
 import { ArrowLeft, FileQuestion } from "lucide-react";
@@ -87,7 +88,11 @@ export default function ArticlePage() {
 
       {/* Main Mode View */}
       {mode === "cheatsheet" ? (
-        <CheatSheetView article={article} />
+        article.decision_tree_json?.length ? (
+          <DecisionTreeView article={article} />
+        ) : (
+          <CheatSheetView article={article} />
+        )
       ) : (
         <FullRegulationView article={article} />
       )}
